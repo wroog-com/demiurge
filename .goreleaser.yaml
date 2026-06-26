@@ -1,0 +1,44 @@
+version: 2
+
+project_name: demi
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: demi
+    binary: demi
+    main: ./cmd/demi
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/wroog-com/demiurge/internal/build.Version={{.Version}} -X github.com/wroog-com/demiurge/internal/build.Date={{time "2006-01-02"}}
+
+archives:
+  - ids: [demi]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - zip
+
+checksum:
+  name_template: checksums.txt
+
+brews:
+  - name: demi
+    repository:
+      owner: wroog-com
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/wroog-com/demiurge"
+    description: "Project maintenance tool for developers"
+    install: |
+      bin.install "demi"
+    test: |
+      system "#{bin}/demi"
