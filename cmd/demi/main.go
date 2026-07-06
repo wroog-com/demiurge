@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/wroog-com/demiurge/internal/cmd"
+	"github.com/wroog-com/demiurge/internal/demi"
 )
 
 func main() {
-	if err := cmd.NewRootCmd().Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	os.Exit(int(demi.Main()))
 }
