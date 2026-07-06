@@ -1,15 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/wroog-com/demiurge/internal/build"
+	"github.com/wroog-com/demiurge/internal/cmd"
 )
 
 func main() {
-	if build.Date != "" {
-		fmt.Printf("demi version %s (%s)\n", build.Version, build.Date)
-	} else {
-		fmt.Printf("demi version %s\n", build.Version)
+	if err := cmd.NewRootCmd().Execute(); err != nil {
+		os.Exit(1)
 	}
 }
