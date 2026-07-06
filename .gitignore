@@ -11,6 +11,7 @@ desktop.ini
 # Editor
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 *~
