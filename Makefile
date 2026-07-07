@@ -1,4 +1,4 @@
-.PHONY: test build run
+.PHONY: test build run goreleaser-check
 
 test:
 	go test -race ./...
@@ -8,3 +8,6 @@ build:
 
 run:
 	go run ./cmd/demi
+
+goreleaser-check:
+	goreleaser release --snapshot --skip=publish,announce,validate
