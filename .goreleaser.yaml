@@ -29,13 +29,13 @@ archives:
 checksum:
   name_template: checksums.txt
 
-homebrew_casks:
+brews:
   - name: demi
     repository:
       owner: wroog-com
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
     homepage: "https://github.com/wroog-com/demiurge"
     description: "Project maintenance tool for developers"
-    binaries:
-      - demi
+    install: bin.install "demi"
