@@ -31,3 +31,68 @@ func TestTest_buffersAreLinked(t *testing.T) {
 		t.Errorf("errBuf: expected %q, got %q", "via ios err", errBuf.String())
 	}
 }
+
+func TestTest_isNotTTY(t *testing.T) {
+	ios, _, _, _ := Test()
+	if ios.IsStdinTTY() {
+		t.Error("expected IsStdinTTY to be false in test streams")
+	}
+	if ios.IsStdoutTTY() {
+		t.Error("expected IsStdoutTTY to be false in test streams")
+	}
+	if ios.IsStderrTTY() {
+		t.Error("expected IsStderrTTY to be false in test streams")
+	}
+}
+
+func TestForceTerminal(t *testing.T) {
+	ios, _, _, _ := Test()
+	ios.ForceTerminal()
+	if !ios.IsStdoutTTY() {
+		t.Error("expected IsStdoutTTY to be true after ForceTerminal")
+	}
+	if !ios.IsStderrTTY() {
+		t.Error("expected IsStderrTTY to be true after ForceTerminal")
+	}
+	if !ios.IsStdinTTY() {
+		t.Error("expected IsStdinTTY to be true after ForceTerminal")
+	}
+}
+
+func TestColorEnabled_noTTY(t *testing.T) {
+	ios, _, _, _ := Test()
+	if ios.ColorEnabled() {
+		t.Error("expected ColorEnabled to be false when not a TTY")
+	}
+}
+
+func TestColorEnabled_withTTY(t *testing.T) {
+	ios, _, _, _ := Test()
+	ios.ForceTerminal()
+	if !ios.ColorEnabled() {
+		t.Error("expected ColorEnabled to be true when TTY and NO_COLOR unset")
+	}
+}
+
+func TestColorEnabled_noColor(t *testing.T) {
+	ios, _, _, _ := Test()
+	ios.ForceTerminal()
+	t.Setenv("NO_COLOR", "1")
+	if ios.ColorEnabled() {
+		t.Error("expected ColorEnabled to be false when NO_COLOR is set")
+	}
+}
+
+func TestForceColorOverrides(t *testing.T) {
+	ios, _, _, _ := Test()
+
+	ios.ForceColorEnabled()
+	if !ios.ColorEnabled() {
+		t.Error("expected ColorEnabled to be true after ForceColorEnabled")
+	}
+
+	ios.ForceColorDisabled()
+	if ios.ColorEnabled() {
+		t.Error("expected ColorEnabled to be false after ForceColorDisabled")
+	}
+}
