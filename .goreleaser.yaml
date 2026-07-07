@@ -35,6 +35,7 @@ brews:
       owner: wroog-com
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
     homepage: "https://github.com/wroog-com/demiurge"
     description: "Project maintenance tool for developers"
     install: bin.install "demi"
