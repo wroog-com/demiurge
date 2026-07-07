@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/wroog-com/demiurge/compare/v0.2.1...v0.2.2) (2026-07-07)
+
+
+### Bug Fixes
+
+* add missing directory field to brews config ([#38](https://github.com/wroog-com/demiurge/issues/38)) ([a41dd77](https://github.com/wroog-com/demiurge/commit/a41dd774135b341c3512f323b0165eab580be333))
+
 ## [0.2.1](https://github.com/wroog-com/demiurge/compare/v0.2.0...v0.2.1) (2026-07-07)
 
 
