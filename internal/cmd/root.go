@@ -15,6 +15,11 @@ func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 
 	root.CompletionOptions.DisableDefaultCmd = true
 
+	// Wrap flag errors as FlagError so demi.Main prints usage alongside them.
+	root.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		return cmdutil.FlagErrorWrap(err)
+	})
+
 	root.AddCommand(NewVersionCmd(f))
 
 	return root
