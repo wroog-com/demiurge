@@ -2,6 +2,7 @@ package iostreams
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
@@ -103,3 +104,18 @@ func (s *IOStreams) ForceNoTerminal() {
 
 func (s *IOStreams) ForceColorEnabled()  { v := true; s.colorOverride = &v }
 func (s *IOStreams) ForceColorDisabled() { v := false; s.colorOverride = &v }
+
+func (s *IOStreams) IsDebug() bool {
+	switch os.Getenv("DEMI_DEBUG") {
+	case "", "false", "0", "no":
+		return false
+	default:
+		return true
+	}
+}
+
+func (s *IOStreams) Debugf(format string, args ...any) {
+	if s.IsDebug() {
+		fmt.Fprintf(s.Err, "DEBUG: "+format+"\n", args...)
+	}
+}
