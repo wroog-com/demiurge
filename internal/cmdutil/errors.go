@@ -1,7 +1,40 @@
 package cmdutil
 
-import "errors"
+import (
+	"context"
+	"errors"
+	"fmt"
+)
 
 // SilentError signals exit code 1 without printing anything. Use it when the
 // subcommand has already printed its own error message.
 var SilentError = errors.New("SilentError")
+
+// CancelError signals user-initiated cancellation; it maps to its own exit code.
+var CancelError = errors.New("CancelError")
+
+// IsUserCancellation reports whether err represents the user aborting the
+// command. Interactive integrations that add their own interrupt errors should
+// extend this.
+func IsUserCancellation(err error) bool {
+	return errors.Is(err, CancelError) ||
+		errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded)
+}
+
+// A FlagError indicates a problem parsing flags or arguments; such errors cause
+// the command's usage to be shown.
+type FlagError struct {
+	err error
+}
+
+func (e *FlagError) Error() string { return e.err.Error() }
+func (e *FlagError) Unwrap() error { return e.err }
+
+// FlagErrorf returns a FlagError wrapping fmt.Errorf(format, args...).
+func FlagErrorf(format string, args ...any) error {
+	return FlagErrorWrap(fmt.Errorf(format, args...))
+}
+
+// FlagErrorWrap returns a FlagError wrapping err.
+func FlagErrorWrap(err error) error { return &FlagError{err} }
