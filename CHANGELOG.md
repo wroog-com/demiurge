@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/wroog-com/demiurge/compare/v0.1.1...v0.2.0) (2026-07-07)
+
+
+### Features
+
+* CLI foundation, error handling, coverage, and trunk-based workflow ([#32](https://github.com/wroog-com/demiurge/issues/32)) ([8fa6e0c](https://github.com/wroog-com/demiurge/commit/8fa6e0c0b84dc497019eb973b4ce97956fa88795))
+
 ## [0.1.1](https://github.com/wroog-com/demiurge/compare/v0.1.0...v0.1.1) (2026-06-26)
 
 
