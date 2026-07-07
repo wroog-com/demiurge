@@ -29,7 +29,7 @@ archives:
 checksum:
   name_template: checksums.txt
 
-homebrew_casks:
+brews:
   - name: demi
     repository:
       owner: wroog-com
@@ -37,5 +37,4 @@ homebrew_casks:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: "https://github.com/wroog-com/demiurge"
     description: "Project maintenance tool for developers"
-    binaries:
-      - demi
+    install: bin.install "demi"
