@@ -1,4 +1,4 @@
-c# Demiurge — Agent Guide
+# Demiurge — Agent Guide
 
 ## What this project is
 
@@ -46,19 +46,35 @@ Do not add `Co-Authored-By` trailers to commits.
 
 ## Branch and PR flow
 
-- Work happens on `dev` or feature branches
-- PRs merge into `main` via squash merge — PR title becomes the commit, so it must follow conventional commits format
-- release-please opens version PRs automatically on `main` pushes; do not modify those PRs manually
+Trunk-based: `main` is the single long-lived branch and is always releasable.
+
+- Branch off `main` for every change; keep branches short-lived
+- PRs merge into `main` via squash merge — the PR title becomes the commit, so it must follow conventional commits format
+- Merging a feature PR does **not** cut a release. release-please batches merged changes into a pending version PR; a release ships only when that version PR is merged
+- release-please maintains the version PR automatically; do not edit it manually
+
+### Testing changes together before merge
+
+To validate several in-flight branches as a combination without merging any of them to `main`, create a throwaway integration branch, merge the branches into it, and test there:
+
+```sh
+git switch -c integration main
+git merge feature-a feature-b
+# build and test the combination
+git switch main && git branch -D integration
+```
+
+The integration branch is disposable — never open a PR from it and never promote it. Delete it once testing is done.
 
 ## Release pipeline
 
-`conventional commit → main` → release-please opens version PR → merge PR → tag pushed → GoReleaser builds macOS binaries → Homebrew cask updated automatically
+`conventional commit → main` → release-please maintains the version PR → merge the version PR → tag pushed → GoReleaser builds macOS binaries → Homebrew cask updated automatically
 
 ## Quick context commands
 
 ```sh
 gh issue list --state open          # what is open
 gh milestone list                   # current version goals
-gh pr list                          # open PRs including release-please PRs
+gh pr list                          # open PRs including the release-please PR
 git log --oneline -10               # recent commits
 ```
