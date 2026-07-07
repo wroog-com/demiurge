@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/wroog-com/demiurge/compare/v0.2.0...v0.2.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* switch homebrew distribution from cask to formula and harden CI action pins ([#36](https://github.com/wroog-com/demiurge/issues/36)) ([a52fdbe](https://github.com/wroog-com/demiurge/commit/a52fdbecbb2779f3168255479d9a20df6bbfbfa5))
+
 ## [0.2.0](https://github.com/wroog-com/demiurge/compare/v0.1.1...v0.2.0) (2026-07-07)
 
 
