@@ -1,6 +1,6 @@
 version: 2
 
-project_name: demi
+project_name: demiurge
 
 before:
   hooks:
@@ -29,16 +29,13 @@ archives:
 checksum:
   name_template: checksums.txt
 
-brews:
+homebrew_casks:
   - name: demi
     repository:
       owner: wroog-com
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    directory: Formula
     homepage: "https://github.com/wroog-com/demiurge"
     description: "Project maintenance tool for developers"
-    install: |
-      bin.install "demi"
-    test: |
-      system "#{bin}/demi"
+    binaries:
+      - demi
