@@ -5,16 +5,16 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wroog-com/demiurge/internal/build"
-	"github.com/wroog-com/demiurge/internal/iostreams"
+	"github.com/wroog-com/demiurge/internal/cmdutil"
 )
 
-func NewVersionCmd(ioStreams *iostreams.IOStreams) *cobra.Command {
+func NewVersionCmd(f *cmdutil.Factory) *cobra.Command {
 	return &cobra.Command{
 		Use:    "version",
 		Short:  "Print the version",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprint(ioStreams.Out, Format(build.Version, build.Date))
+			fmt.Fprint(f.IOStreams.Out, Format(build.Version, build.Date))
 			return nil
 		},
 	}
