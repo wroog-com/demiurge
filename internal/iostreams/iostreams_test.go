@@ -96,3 +96,47 @@ func TestForceColorOverrides(t *testing.T) {
 		t.Error("expected ColorEnabled to be false after ForceColorDisabled")
 	}
 }
+
+func TestIsDebug_unset(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
+	ios, _, _, _ := Test()
+	if ios.IsDebug() {
+		t.Error("expected IsDebug to be false when DEMI_DEBUG is unset")
+	}
+}
+
+func TestIsDebug_falsy(t *testing.T) {
+	for _, v := range []string{"false", "0", "no"} {
+		t.Setenv("DEMI_DEBUG", v)
+		ios, _, _, _ := Test()
+		if ios.IsDebug() {
+			t.Errorf("expected IsDebug to be false when DEMI_DEBUG=%q", v)
+		}
+	}
+}
+
+func TestIsDebug_set(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "1")
+	ios, _, _, _ := Test()
+	if !ios.IsDebug() {
+		t.Error("expected IsDebug to be true when DEMI_DEBUG=1")
+	}
+}
+
+func TestDebugf_writesWhenEnabled(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "1")
+	ios, _, _, errBuf := Test()
+	ios.Debugf("hello %s", "world")
+	if errBuf.String() != "DEBUG: hello world\n" {
+		t.Errorf("unexpected debug output: %q", errBuf.String())
+	}
+}
+
+func TestDebugf_silentWhenDisabled(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
+	ios, _, _, errBuf := Test()
+	ios.Debugf("should not appear")
+	if errBuf.String() != "" {
+		t.Errorf("expected no output, got: %q", errBuf.String())
+	}
+}
