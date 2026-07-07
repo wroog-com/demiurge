@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/wroog-com/demiurge/internal/build"
+	"github.com/wroog-com/demiurge/internal/demi"
 )
 
 func main() {
-	if build.Date != "" {
-		fmt.Printf("demi version %s (%s)\n", build.Version, build.Date)
-	} else {
-		fmt.Printf("demi version %s\n", build.Version)
-	}
+	os.Exit(int(demi.Main()))
 }
