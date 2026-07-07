@@ -14,12 +14,15 @@ func NewVersionCmd(ioStreams *iostreams.IOStreams) *cobra.Command {
 		Short:  "Print the version",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if build.Date != "" {
-				fmt.Fprintf(ioStreams.Out, "demi version %s (%s)\n", build.Version, build.Date)
-			} else {
-				fmt.Fprintf(ioStreams.Out, "demi version %s\n", build.Version)
-			}
+			fmt.Fprint(ioStreams.Out, Format(build.Version, build.Date))
 			return nil
 		},
 	}
+}
+
+func Format(version, buildDate string) string {
+	if buildDate != "" {
+		return fmt.Sprintf("demi version %s (%s)\n", version, buildDate)
+	}
+	return fmt.Sprintf("demi version %s\n", version)
 }
