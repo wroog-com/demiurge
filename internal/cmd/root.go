@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/wroog-com/demiurge/internal/iostreams"
+	"github.com/wroog-com/demiurge/internal/cmdutil"
 )
 
-func NewRootCmd(ioStreams *iostreams.IOStreams) *cobra.Command {
+func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "demi",
 		Short:         "Terminal-native project awareness for developers",
@@ -15,7 +15,7 @@ func NewRootCmd(ioStreams *iostreams.IOStreams) *cobra.Command {
 
 	root.CompletionOptions.DisableDefaultCmd = true
 
-	root.AddCommand(NewVersionCmd(ioStreams))
+	root.AddCommand(NewVersionCmd(f))
 
 	return root
 }

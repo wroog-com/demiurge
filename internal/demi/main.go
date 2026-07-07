@@ -17,11 +17,13 @@ const (
 )
 
 func Main() ExitCode {
-	ioStreams := iostreams.System()
+	f := &cmdutil.Factory{
+		IOStreams: iostreams.System(),
+	}
 
-	if err := cmd.NewRootCmd(ioStreams).Execute(); err != nil {
+	if err := cmd.NewRootCmd(f).Execute(); err != nil {
 		if !errors.Is(err, cmdutil.SilentError) {
-			fmt.Fprintln(ioStreams.Err, err)
+			fmt.Fprintln(f.IOStreams.Err, err)
 		}
 		return ExitError
 	}
