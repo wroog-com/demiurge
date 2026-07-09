@@ -38,4 +38,5 @@ brews:
     directory: Formula
     homepage: "https://github.com/wroog-com/demiurge"
     description: "Project maintenance tool for developers"
+    license: "MIT"
     install: bin.install "demi"
