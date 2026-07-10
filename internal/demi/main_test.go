@@ -53,7 +53,7 @@ func TestMapError_silentErrorNotPrinted(t *testing.T) {
 	ios, _, _, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
-	code := mapError(f, nil, cmdutil.SilentError)
+	code := mapError(f, nil, cmdutil.ErrSilent)
 	if code != ExitError {
 		t.Errorf("mapError(SilentError) = %d, want ExitError", code)
 	}
@@ -66,7 +66,7 @@ func TestMapError_wrappedSilentErrorNotPrinted(t *testing.T) {
 	ios, _, _, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
-	wrapped := fmt.Errorf("context: %w", cmdutil.SilentError)
+	wrapped := fmt.Errorf("context: %w", cmdutil.ErrSilent)
 	if code := mapError(f, nil, wrapped); code != ExitError {
 		t.Errorf("mapError(wrapped SilentError) = %d, want ExitError", code)
 	}
@@ -77,9 +77,9 @@ func TestMapError_wrappedSilentErrorNotPrinted(t *testing.T) {
 
 func TestMapError_cancellation(t *testing.T) {
 	cases := map[string]error{
-		"CancelError":      cmdutil.CancelError,
+		"CancelError":      cmdutil.ErrCancel,
 		"context.Canceled": context.Canceled,
-		"wrapped":          fmt.Errorf("aborting: %w", cmdutil.CancelError),
+		"wrapped":          fmt.Errorf("aborting: %w", cmdutil.ErrCancel),
 	}
 	for name, err := range cases {
 		t.Run(name, func(t *testing.T) {
