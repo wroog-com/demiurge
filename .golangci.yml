@@ -11,6 +11,12 @@ linters:
     - reassign
     - staticcheck
     - unused
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf
 
 formatters:
   enable:

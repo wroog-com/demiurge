@@ -6,18 +6,18 @@ import (
 	"fmt"
 )
 
-// SilentError signals exit code 1 without printing anything. Use it when the
+// ErrSilent signals exit code 1 without printing anything. Use it when the
 // subcommand has already printed its own error message.
-var SilentError = errors.New("SilentError")
+var ErrSilent = errors.New("ErrSilent")
 
-// CancelError signals user-initiated cancellation; it maps to its own exit code.
-var CancelError = errors.New("CancelError")
+// ErrCancel signals user-initiated cancellation; it maps to its own exit code.
+var ErrCancel = errors.New("ErrCancel")
 
 // IsUserCancellation reports whether err represents the user aborting the
 // command. Interactive integrations that add their own interrupt errors should
 // extend this.
 func IsUserCancellation(err error) bool {
-	return errors.Is(err, CancelError) ||
+	return errors.Is(err, ErrCancel) ||
 		errors.Is(err, context.Canceled) ||
 		errors.Is(err, context.DeadlineExceeded)
 }
