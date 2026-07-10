@@ -1,4 +1,4 @@
-.PHONY: test build run goreleaser-check
+.PHONY: test build run goreleaser-check lint check
 
 test:
 	go test -race ./...
@@ -11,3 +11,8 @@ run:
 
 goreleaser-check:
 	goreleaser release --snapshot --skip=publish,announce,validate
+
+lint:
+	golangci-lint run ./...
+
+check: test lint
