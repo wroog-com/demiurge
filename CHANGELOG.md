@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/wroog-com/demiurge/compare/v0.3.0...v0.3.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* restore linter changes lost during history rewrite ([#49](https://github.com/wroog-com/demiurge/issues/49)) ([c0478cc](https://github.com/wroog-com/demiurge/commit/c0478ccc418b0e1d58c768a3afa80ae28c9747de))
+
 ## [0.3.0](https://github.com/wroog-com/demiurge/compare/v0.2.2...v0.3.0) (2026-07-10)
 
 
