@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0](https://github.com/wroog-com/demiurge/compare/v0.2.2...v0.3.0) (2026-07-10)
+
+
+### Features
+
+* add version command and distribution pipeline ([57a3dca](https://github.com/wroog-com/demiurge/commit/57a3dca02f9847604dcac24301d43730b275785d))
+* add version command and distribution pipeline ([f2fed59](https://github.com/wroog-com/demiurge/commit/f2fed59496d1a2719a099cb63311cb6646c3e9cf))
+* CLI foundation, error handling, coverage, and trunk-based workflow ([#32](https://github.com/wroog-com/demiurge/issues/32)) ([4d85fee](https://github.com/wroog-com/demiurge/commit/4d85feed7c4878972a8cd3ff4b4a928d234fe39c))
+
+
+### Bug Fixes
+
+* add missing directory field to brews config ([#38](https://github.com/wroog-com/demiurge/issues/38)) ([c40eb8b](https://github.com/wroog-com/demiurge/commit/c40eb8b2c9fbe057e622ef706854913080a6461e))
+* switch homebrew distribution from cask to formula and harden CI action pins ([#36](https://github.com/wroog-com/demiurge/issues/36)) ([b89a853](https://github.com/wroog-com/demiurge/commit/b89a853fe5a1882e92787b3e3477f4e63a7d9518))
+* update github app token to use client-id ([46367d8](https://github.com/wroog-com/demiurge/commit/46367d8bec73dbdd8092b5807e45ff9e3e86a495))
+* update github app token to use client-id ([128401d](https://github.com/wroog-com/demiurge/commit/128401d652da85a369409a56a53993e3082a455e))
+
 ## [0.2.2](https://github.com/wroog-com/demiurge/compare/v0.2.1...v0.2.2) (2026-07-07)
 
 
