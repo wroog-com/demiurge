@@ -37,7 +37,7 @@ func mapError(f *cmdutil.Factory, cmd *cobra.Command, err error) ExitCode {
 	if err == nil {
 		return ExitOK
 	}
-	if errors.Is(err, cmdutil.SilentError) {
+	if errors.Is(err, cmdutil.ErrSilent) {
 		return ExitError
 	}
 	if cmdutil.IsUserCancellation(err) {

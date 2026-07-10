@@ -7,23 +7,23 @@ import (
 	"testing"
 )
 
-func TestSilentError(t *testing.T) {
-	err := SilentError
+func TestErrSilent(t *testing.T) {
+	err := ErrSilent
 	if err == nil {
-		t.Fatal("SilentError should not be nil")
+		t.Fatal("ErrSilent should not be nil")
 	}
-	if !errors.Is(err, SilentError) {
-		t.Error("errors.Is should match SilentError")
+	if !errors.Is(err, ErrSilent) {
+		t.Error("errors.Is should match ErrSilent")
 	}
 	if err.Error() == "" {
-		t.Error("SilentError should have a non-empty message")
+		t.Error("ErrSilent should have a non-empty message")
 	}
 }
 
-func TestSilentError_wrapping(t *testing.T) {
-	wrapped := fmt.Errorf("context: %w", SilentError)
-	if !errors.Is(wrapped, SilentError) {
-		t.Error("wrapped SilentError should be detectable via errors.Is")
+func TestErrSilent_wrapping(t *testing.T) {
+	wrapped := fmt.Errorf("context: %w", ErrSilent)
+	if !errors.Is(wrapped, ErrSilent) {
+		t.Error("wrapped ErrSilent should be detectable via errors.Is")
 	}
 }
 
@@ -33,12 +33,12 @@ func TestIsUserCancellation(t *testing.T) {
 		err  error
 		want bool
 	}{
-		{"CancelError", CancelError, true},
-		{"wrapped CancelError", fmt.Errorf("aborting: %w", CancelError), true},
+		{"ErrCancel", ErrCancel, true},
+		{"wrapped ErrCancel", fmt.Errorf("aborting: %w", ErrCancel), true},
 		{"context.Canceled", context.Canceled, true},
 		{"context.DeadlineExceeded", context.DeadlineExceeded, true},
 		{"unrelated error", errors.New("boom"), false},
-		{"SilentError", SilentError, false},
+		{"ErrSilent", ErrSilent, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
