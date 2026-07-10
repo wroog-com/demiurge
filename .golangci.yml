@@ -3,12 +3,19 @@ version: "2"
 linters:
   default: none
   enable:
-    - govet        # suspicious constructs, misaligned Printf args
-    - ineffassign  # assignments to variables that are never used
-    - unused       # unused constants, variables, functions, types
-    - nilerr       # returns nil despite checking error is not nil
-    - reassign     # package-level variables being reassigned
-    - nolintlint   # ill-formed or insufficient nolint directives
+    - errcheck
+    - govet
+    - ineffassign
+    - nilerr
+    - nolintlint
+    - reassign
+    - staticcheck
+    - unused
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
 
 issues:
   max-issues-per-linter: 0

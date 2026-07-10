@@ -21,12 +21,12 @@ func TestSystem(t *testing.T) {
 func TestTest_buffersAreLinked(t *testing.T) {
 	ios, _, out, errBuf := Test()
 
-	ios.Out.Write([]byte("via ios out"))
+	_, _ = ios.Out.Write([]byte("via ios out"))
 	if out.String() != "via ios out" {
 		t.Errorf("out: expected %q, got %q", "via ios out", out.String())
 	}
 
-	ios.Err.Write([]byte("via ios err"))
+	_, _ = ios.Err.Write([]byte("via ios err"))
 	if errBuf.String() != "via ios err" {
 		t.Errorf("errBuf: expected %q, got %q", "via ios err", errBuf.String())
 	}
