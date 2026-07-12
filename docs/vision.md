@@ -111,3 +111,8 @@ registry's storage medium.
 - Preserve reversibility: no integration ships an action it cannot cleanly undo.
 - Keep `demi`'s own state local, small, and singular. Cross-machine sync of the
   registry, if ever wanted, is a distinct concern — not a storage-provider one.
+- Keep `demi` usable entirely through a small, composable command-line interface, and
+  treat that as sufficient on its own — a power user should never need a richer interface
+  to get full value. `demi` is used at the edges between projects, not lived in: it never
+  becomes a resident, always-on surface. How any additional frontend relates to the core
+  is an architecture question tracked in the issues.
