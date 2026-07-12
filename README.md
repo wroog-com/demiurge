@@ -75,8 +75,9 @@ projects) are a direction the tool is built toward, not all present yet.
 
 - [`docs/vision.md`](docs/vision.md) — the product model and the reasoning behind
   it, written for people building `demi`.
-- [`CLAUDE.md`](CLAUDE.md) — the working agreement: issue workflow, branching,
-  releases.
+- [`AGENTS.md`](AGENTS.md) — the working agreement: issue workflow, branching,
+  releases. (`CLAUDE.md` is a thin `@AGENTS.md` import so tools expecting that
+  filename still load it.)
 
 Current focus and progress live in the repository's issues and milestones, not in
 this file.
