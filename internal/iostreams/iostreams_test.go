@@ -61,6 +61,7 @@ func TestForceTerminal(t *testing.T) {
 
 func TestColorEnabled_noTTY(t *testing.T) {
 	ios, _, _, _ := Test()
+	t.Setenv("NO_COLOR", "")
 	if ios.ColorEnabled() {
 		t.Error("expected ColorEnabled to be false when not a TTY")
 	}
@@ -69,6 +70,7 @@ func TestColorEnabled_noTTY(t *testing.T) {
 func TestColorEnabled_withTTY(t *testing.T) {
 	ios, _, _, _ := Test()
 	ios.ForceTerminal()
+	t.Setenv("NO_COLOR", "")
 	if !ios.ColorEnabled() {
 		t.Error("expected ColorEnabled to be true when TTY and NO_COLOR unset")
 	}
