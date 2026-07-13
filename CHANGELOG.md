@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/wroog-com/demiurge/compare/v0.3.1...v0.3.2) (2026-07-13)
+
+
+### Bug Fixes
+
+* pin NO_COLOR in color tests to keep the test suite hermetic ([#62](https://github.com/wroog-com/demiurge/issues/62)) ([982d84b](https://github.com/wroog-com/demiurge/commit/982d84bff59a84ca6cae3f7a3093f4b0beda6862))
+
 ## [0.3.1](https://github.com/wroog-com/demiurge/compare/v0.3.0...v0.3.1) (2026-07-10)
 
 
