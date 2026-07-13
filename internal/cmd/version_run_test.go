@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -8,34 +9,68 @@ import (
 	"github.com/wroog-com/demiurge/internal/iostreams"
 )
 
+func runRoot(t *testing.T, args ...string) (stdout, stderr string, err error) {
+	t.Helper()
+	ios, _, out, errBuf := iostreams.Test()
+	root := NewRootCmd(&cmdutil.Factory{IOStreams: ios})
+	root.SetArgs(args)
+	err = root.Execute()
+	return out.String(), errBuf.String(), err
+}
+
 func TestVersionCmd_metadata(t *testing.T) {
 	c := NewVersionCmd(testFactory())
-
 	if c.Use != "version" {
 		t.Errorf("Use = %q, want %q", c.Use, "version")
 	}
-	if !c.Hidden {
-		t.Error("version command should be hidden")
+	if c.Hidden {
+		t.Error("version command must be visible")
 	}
 }
 
 func TestVersionCmd_writesToOut(t *testing.T) {
-	ios, _, out, errBuf := iostreams.Test()
-	f := &cmdutil.Factory{IOStreams: ios}
+	stdout, stderr, err := runRoot(t, "version")
+	if err != nil {
+		t.Fatalf("Execute returned error: %v", err)
+	}
+	if !strings.HasPrefix(stdout, "demi version ") {
+		t.Errorf("output = %q, want prefix %q", stdout, "demi version ")
+	}
+	if !strings.HasSuffix(stdout, "\n") {
+		t.Errorf("output = %q, want trailing newline", stdout)
+	}
+	if stderr != "" {
+		t.Errorf("version must not write to Err, got %q", stderr)
+	}
+}
 
-	c := NewVersionCmd(f)
-	if err := c.RunE(c, nil); err != nil {
-		t.Fatalf("RunE returned error: %v", err)
+func TestVersionFlag_matchesVersionCmd(t *testing.T) {
+	flagOut, flagErr, err := runRoot(t, "--version")
+	if err != nil {
+		t.Fatalf("--version returned error: %v", err)
 	}
+	cmdOut, _, err := runRoot(t, "version")
+	if err != nil {
+		t.Fatalf("version returned error: %v", err)
+	}
+	if flagOut == "" || flagOut != cmdOut {
+		t.Errorf("--version = %q, version = %q; the two surfaces must be byte-identical", flagOut, cmdOut)
+	}
+	if flagErr != "" {
+		t.Errorf("--version must write to Out only, got Err %q", flagErr)
+	}
+}
 
-	got := out.String()
-	if !strings.HasPrefix(got, "demi version ") {
-		t.Errorf("output = %q, want it to start with %q", got, "demi version ")
+func TestVersionFlag_hasNoShorthand(t *testing.T) {
+	_, _, err := runRoot(t, "-v")
+	if err == nil {
+		t.Fatal("-v must stay unclaimed so it remains available later; --version has no shorthand")
 	}
-	if !strings.HasSuffix(got, "\n") {
-		t.Errorf("output = %q, want it to end with a newline", got)
+	var flagErr *cmdutil.FlagError
+	if !errors.As(err, &flagErr) {
+		t.Fatalf("-v error = %T (%v), want *cmdutil.FlagError so usage prints alongside it", err, err)
 	}
-	if errBuf.String() != "" {
-		t.Errorf("version should not write to Err, got %q", errBuf.String())
+	if !strings.Contains(err.Error(), "unknown shorthand flag: 'v'") {
+		t.Errorf("-v error = %q, want unknown-shorthand for 'v' specifically", err.Error())
 	}
 }
