@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/wroog-com/demiurge/compare/v0.3.3...v0.4.0) (2026-07-13)
+
+
+### Features
+
+* add --version flag and unhide version command ([#70](https://github.com/wroog-com/demiurge/issues/70)) ([0285166](https://github.com/wroog-com/demiurge/commit/0285166df2a56295004ce09d4a8355f9d9713350))
+
 ## [0.3.3](https://github.com/wroog-com/demiurge/compare/v0.3.2...v0.3.3) (2026-07-13)
 
 
