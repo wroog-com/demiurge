@@ -2,6 +2,7 @@ package build
 
 import "runtime/debug"
 
+// Stamped at release via -X ldflags; read only where the root command is built.
 var (
 	Version = "dev"
 	Date    = ""
