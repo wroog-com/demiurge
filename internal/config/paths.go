@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -16,7 +16,7 @@ func ConfigDir() (string, error) {
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("could not determine home directory for config")
+		return "", fmt.Errorf("determine home directory for config: %w", err)
 	}
 	return filepath.Join(home, ".config", "demi"), nil
 }
@@ -31,7 +31,7 @@ func StateDir() (string, error) {
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("could not determine home directory for state")
+		return "", fmt.Errorf("determine home directory for state: %w", err)
 	}
 	return filepath.Join(home, ".local", "state", "demi"), nil
 }

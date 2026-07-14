@@ -91,6 +91,68 @@ evolves:
 Keep the environment surface small — a new variable must fall into one of the two
 categories above.
 
+## Error handling
+
+Errors flow up; the entrypoint (`cmd/demi` and `internal/demi`) owns presentation and
+exit codes. Code below the entrypoint constructs and returns errors — it never prints
+them and never calls `os.Exit`.
+
+### Constructing
+
+- **Never discard a cause.** When an underlying call fails, carry it:
+  `fmt.Errorf("determine home directory for config: %w", err)` — not a fresh
+  `errors.New` that loses the reason.
+- **Wrap with `%w` by default.** Use `%v` only to deliberately sever the chain — when
+  the cause is an implementation detail no caller may ever match on. Severing is the
+  exception; when unsure, wrap.
+- **Messages are lowercase, with no trailing punctuation and no `error:` prefix**; they
+  state what could not be done. Control sentinels whose text never prints (`ErrSilent`,
+  `ErrCancel`) are named after their identifier instead — leave them as they are.
+- **Add a sentinel** (`var ErrFoo = errors.New(...)`) only when a caller branches on
+  identity; **add an error type** only when a caller needs data or behaviour from it.
+  Otherwise return plain wrapped errors. Sentinels and types the entrypoint or multiple
+  packages branch on live in `internal/cmdutil`.
+
+### Propagating
+
+- **Wrap only where you add information the callee lacked** — the path, the resource,
+  the intent. If a wrap would restate the callee's message, `return err` unchanged.
+- **The failure phrase (`could not …`) is added once, by the layer nearest the user —
+  normally the command; wraps below it name the operation** (`read settings file: %w`),
+  so the final message reads as one sentence — never `could not X: could not Y`.
+- **Classification sees the whole chain.** `errors.Is`/`errors.As` match through every
+  `%w` link, so wrapping republishes everything inside: a returned chain containing
+  `context.Canceled` exits 2 with nothing printed — the wrap's message is discarded.
+  If a dependency leaks `context.Canceled` from a non-cancellation failure, sever that
+  link with `%v`; never sever a genuine cancellation — that turns Ctrl-C into a
+  printed exit-1 failure.
+
+### Presentation and exit codes
+
+- **A returned error surfaces exactly once**: `printError` in `internal/demi` prints it
+  — code never both prints an error and returns it. It writes to stderr and appends
+  usage for flag and unknown-command errors.
+- **A command that has already shown its failure returns `cmdutil.ErrSilent`** —
+  presenting the cause is not discarding it. Non-fatal diagnostics a command emits
+  while succeeding are ordinary output, outside this contract.
+- **A command that stops because its context was canceled returns `ctx.Err()`**, bare
+  or wrapped — `mapError` recognises it chain-deep and stays silent. `cmdutil.ErrCancel`
+  is for user aborts that carry no context error (e.g. a declined prompt).
+- **`mapError` in `internal/demi` is the only place exit codes are decided**: nil → 0,
+  failure → 1, user cancellation → 2. `context.DeadlineExceeded` is a failure, not a
+  cancellation. Exit codes are a documented user contract — a new code means a new
+  sentinel or type in `internal/cmdutil`, a `mapError` branch, and its docs.
+- **Classify with `errors.Is`/`errors.As` against named sentinels and types — never by
+  matching message text.** The entrypoint's unknown-command prefix check is the single
+  deliberate classification exception; do not add another.
+
+### What not to add
+
+Plain stdlib errors are the entire mechanism. No error-handling packages, no error
+codes, no stack traces, no structured logging — nothing of the kind until a concrete
+consumer exists. The intact `%w` chain is the future diagnostic surface; preserving it
+is what the rules above buy.
+
 ## Quick context commands
 
 ```sh
