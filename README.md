@@ -11,6 +11,22 @@ down cleanly, and remembering what you've done.
 
 Local-only. No accounts, no cloud, no sync required.
 
+## Install
+
+`demi` currently runs on macOS — both Apple Silicon and Intel.
+
+Install with Homebrew:
+
+```sh
+brew install wroog-com/tap/demi
+```
+
+Or build from source with Go:
+
+```sh
+go install github.com/wroog-com/demiurge/cmd/demi@latest
+```
+
 ## Why it exists
 
 If you keep a lot of projects going, the hard parts usually aren't in the code —
@@ -70,6 +86,12 @@ projects) are a direction the tool is built toward, not all present yet.
   integration (code hosting, AI, and so on) is something you opt into.
 - **Accumulated context is the point.** The value grows as `demi` learns more
   about your projects over time.
+
+## Stability
+
+`demi` is pre-1.0 and under active development. Anything you might depend on —
+commands, flags, environment variables, and stored state — may change without a
+deprecation period until 1.0.
 
 ## For contributors
 
