@@ -1,26 +1,143 @@
 package demi
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/wroog-com/demiurge/internal/cmd"
 	"github.com/wroog-com/demiurge/internal/cmdutil"
 	"github.com/wroog-com/demiurge/internal/iostreams"
 )
 
+// TestMain doubles as the helper process for the second-signal test: re-exec'd
+// with DEMI_TEST_SIGNAL_HANG=1 it registers the real signalContext and hangs.
+func TestMain(m *testing.M) {
+	if os.Getenv("DEMI_TEST_SIGNAL_HANG") == "1" {
+		ctx, stop := signalContext(context.Background())
+		defer stop()
+		fmt.Println("ready")
+		go func() {
+			<-ctx.Done()
+			fmt.Println("canceled")
+		}()
+		time.Sleep(10 * time.Second) // deliberately ignores ctx
+		os.Exit(0)
+	}
+	os.Exit(m.Run())
+}
+
 func TestRun_success(t *testing.T) {
-	ios, _, _, errBuf := iostreams.Test()
+	ios, _, outBuf, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
-	if code := run(f); code != ExitOK {
+	if code := run(context.Background(), f, []string{"version"}); code != ExitOK {
 		t.Errorf("run() = %d, want ExitOK", code)
+	}
+	if got, want := outBuf.String(), "demi version dev\n"; got != want {
+		t.Errorf("Out = %q, want %q", got, want)
 	}
 	if errBuf.String() != "" {
 		t.Errorf("expected nothing on Err for success, got %q", errBuf.String())
+	}
+}
+
+func TestRun_emptyArgsShowsHelp(t *testing.T) {
+	ios, _, outBuf, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	if code := run(context.Background(), f, []string{}); code != ExitOK {
+		t.Errorf("run() = %d, want ExitOK", code)
+	}
+	if !strings.Contains(outBuf.String(), "Usage:") {
+		t.Errorf("Out = %q, want root help", outBuf.String())
+	}
+	if errBuf.String() != "" {
+		t.Errorf("expected nothing on Err, got %q", errBuf.String())
+	}
+}
+
+func TestRun_nilArgsDoesNotReadOSArgs(t *testing.T) {
+	ios, _, _, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	orig := os.Args
+	os.Args = []string{"demi", "nonsense"}
+	defer func() { os.Args = orig }()
+
+	if code := run(context.Background(), f, nil); code != ExitOK {
+		t.Errorf("run() = %d, want ExitOK (help), not the ambient argv result", code)
+	}
+	if errBuf.String() != "" {
+		t.Errorf("expected nothing on Err, got %q", errBuf.String())
+	}
+}
+
+func TestRun_unknownCommand(t *testing.T) {
+	ios, _, _, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	if code := run(context.Background(), f, []string{"nonsense"}); code != ExitError {
+		t.Errorf("run() = %d, want ExitError", code)
+	}
+	got := errBuf.String()
+	if !strings.Contains(got, `unknown command "nonsense"`) {
+		t.Errorf("Err = %q, want unknown-command message", got)
+	}
+	if !strings.Contains(got, "Usage:") {
+		t.Errorf("Err = %q, want usage appended", got)
+	}
+}
+
+// Cancellation is cooperative: a command that never reads its context
+// completes normally.
+func TestRun_canceledContextStillRunsVersion(t *testing.T) {
+	ios, _, outBuf, _ := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	if code := run(ctx, f, []string{"version"}); code != ExitOK {
+		t.Errorf("run() = %d, want ExitOK", code)
+	}
+	if got, want := outBuf.String(), "demi version dev\n"; got != want {
+		t.Errorf("Out = %q, want %q", got, want)
+	}
+}
+
+// Mirrors run()'s wiring (run builds its root internally); keep the two in
+// sync or this pin stops covering the real pipeline.
+func TestExecute_contextCancellationMapsToExitCancel(t *testing.T) {
+	ios, _, _, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	root := cmd.NewRootCmd(f)
+	root.AddCommand(&cobra.Command{
+		Use: "block",
+		RunE: func(c *cobra.Command, args []string) error {
+			return c.Context().Err()
+		},
+	})
+	root.SetArgs([]string{"block"})
+
+	executed, err := root.ExecuteContextC(ctx)
+	if code := mapError(f, executed, err); code != ExitCancel {
+		t.Errorf("mapError() = %d, want ExitCancel", code)
+	}
+	if errBuf.String() != "" {
+		t.Errorf("cancellation should be silent, got %q", errBuf.String())
 	}
 }
 
@@ -96,6 +213,18 @@ func TestMapError_cancellation(t *testing.T) {
 	}
 }
 
+func TestMapError_deadlineIsPlainError(t *testing.T) {
+	ios, _, _, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	if code := mapError(f, nil, context.DeadlineExceeded); code != ExitError {
+		t.Errorf("mapError(DeadlineExceeded) = %d, want ExitError", code)
+	}
+	if got := errBuf.String(); got != "context deadline exceeded\n" {
+		t.Errorf("Err = %q, want deadline message", got)
+	}
+}
+
 func TestPrintError_appendsUsageOnFlagError(t *testing.T) {
 	ios, _, _, errBuf := iostreams.Test()
 	c := &cobra.Command{Use: "demi"}
@@ -133,5 +262,91 @@ func TestPrintError_plainErrorNoUsage(t *testing.T) {
 	out := errBuf.String()
 	if out != "disk on fire\n" {
 		t.Errorf("expected only the error line, got %q", out)
+	}
+}
+
+func TestSignalContext_firstSignalCancels(t *testing.T) {
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM} {
+		t.Run(sig.String(), func(t *testing.T) {
+			ctx, stop := signalContext(context.Background())
+			defer stop()
+
+			// Registration completes before signalContext returns, so the
+			// self-delivered signal cannot race the handler.
+			if err := syscall.Kill(syscall.Getpid(), sig); err != nil {
+				t.Fatalf("kill: %v", err)
+			}
+
+			select {
+			case <-ctx.Done():
+			case <-time.After(5 * time.Second):
+				t.Fatalf("context not canceled after %v", sig)
+			}
+			if !errors.Is(ctx.Err(), context.Canceled) {
+				t.Errorf("ctx.Err() = %v, want context.Canceled", ctx.Err())
+			}
+		})
+	}
+}
+
+// Runs against a re-exec'd copy of this test binary, so the shared test
+// process is never signaled.
+func TestSignalContext_secondSignalKills(t *testing.T) {
+	child := exec.Command(os.Args[0])
+	child.Env = append(os.Environ(), "DEMI_TEST_SIGNAL_HANG=1")
+	stdout, err := child.StdoutPipe()
+	if err != nil {
+		t.Fatalf("stdout pipe: %v", err)
+	}
+	if err := child.Start(); err != nil {
+		t.Fatalf("start helper: %v", err)
+	}
+	defer func() { _ = child.Process.Kill() }()
+
+	scanner := bufio.NewScanner(stdout)
+	expect := func(want string) {
+		lines := make(chan string, 1)
+		go func() {
+			if scanner.Scan() {
+				lines <- scanner.Text()
+			} else {
+				close(lines)
+			}
+		}()
+		select {
+		case got, ok := <-lines:
+			if !ok || got != want {
+				t.Fatalf("handshake: got %q (ok=%v), want %q", got, ok, want)
+			}
+		case <-time.After(5 * time.Second):
+			t.Fatalf("timeout waiting for %q", want)
+		}
+	}
+
+	expect("ready") // registration done: no startup race
+	if err := child.Process.Signal(syscall.SIGINT); err != nil {
+		t.Fatalf("first SIGINT: %v", err)
+	}
+	expect("canceled")                 // ctx canceled: watcher is running stop()
+	time.Sleep(200 * time.Millisecond) // settle: disposition restore is async
+
+	if err := child.Process.Signal(syscall.SIGINT); err != nil {
+		t.Fatalf("second SIGINT: %v", err)
+	}
+
+	done := make(chan error, 1)
+	go func() { done <- child.Wait() }()
+	select {
+	case err := <-done:
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("Wait() = %v, want signal-death ExitError", err)
+		}
+		ws, ok := exitErr.Sys().(syscall.WaitStatus)
+		if !ok || !ws.Signaled() || ws.Signal() != syscall.SIGINT {
+			t.Fatalf("child did not die by SIGINT: %v (status %#v)", err, exitErr.Sys())
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("child survived the second SIGINT")
 	}
 }
