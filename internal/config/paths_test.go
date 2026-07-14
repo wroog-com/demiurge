@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,6 +57,19 @@ func TestConfigDir_containsDemi(t *testing.T) {
 	}
 }
 
+func TestConfigDir_wrapsHomeDirError(t *testing.T) {
+	t.Setenv("DEMI_CONFIG_DIR", "")
+	t.Setenv("XDG_CONFIG_HOME", "")
+	t.Setenv("HOME", "")
+	_, err := ConfigDir()
+	if err == nil {
+		t.Fatal("expected an error when the home directory cannot be determined")
+	}
+	if errors.Unwrap(err) == nil {
+		t.Error("cause should be wrapped, not dropped")
+	}
+}
+
 func TestStateDir_default(t *testing.T) {
 	t.Setenv("DEMI_STATE_DIR", "")
 	t.Setenv("XDG_STATE_HOME", "")
@@ -102,5 +116,18 @@ func TestStateDir_containsDemi(t *testing.T) {
 	}
 	if !strings.Contains(got, "demi") {
 		t.Errorf("StateDir() = %q, expected it to contain 'demi'", got)
+	}
+}
+
+func TestStateDir_wrapsHomeDirError(t *testing.T) {
+	t.Setenv("DEMI_STATE_DIR", "")
+	t.Setenv("XDG_STATE_HOME", "")
+	t.Setenv("HOME", "")
+	_, err := StateDir()
+	if err == nil {
+		t.Fatal("expected an error when the home directory cannot be determined")
+	}
+	if errors.Unwrap(err) == nil {
+		t.Error("cause should be wrapped, not dropped")
 	}
 }
