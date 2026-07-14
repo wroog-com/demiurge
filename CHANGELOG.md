@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/wroog-com/demiurge/compare/v0.4.0...v0.5.0) (2026-07-14)
+
+
+### Features
+
+* wire context and signal cancellation ([#74](https://github.com/wroog-com/demiurge/issues/74)) ([33bc5ab](https://github.com/wroog-com/demiurge/commit/33bc5abc87ff6df54115d7d7469950a5d2f425d0))
+
 ## [0.4.0](https://github.com/wroog-com/demiurge/compare/v0.3.3...v0.4.0) (2026-07-13)
 
 
