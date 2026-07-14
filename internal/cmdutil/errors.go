@@ -14,12 +14,11 @@ var ErrSilent = errors.New("ErrSilent")
 var ErrCancel = errors.New("ErrCancel")
 
 // IsUserCancellation reports whether err represents the user aborting the
-// command. Interactive integrations that add their own interrupt errors should
-// extend this.
+// command. Deadline expiry is deliberately excluded: a timeout is a failure,
+// not a cancellation.
 func IsUserCancellation(err error) bool {
 	return errors.Is(err, ErrCancel) ||
-		errors.Is(err, context.Canceled) ||
-		errors.Is(err, context.DeadlineExceeded)
+		errors.Is(err, context.Canceled)
 }
 
 // A FlagError indicates a problem parsing flags or arguments; such errors cause

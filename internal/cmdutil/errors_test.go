@@ -36,7 +36,7 @@ func TestIsUserCancellation(t *testing.T) {
 		{"ErrCancel", ErrCancel, true},
 		{"wrapped ErrCancel", fmt.Errorf("aborting: %w", ErrCancel), true},
 		{"context.Canceled", context.Canceled, true},
-		{"context.DeadlineExceeded", context.DeadlineExceeded, true},
+		{"context.DeadlineExceeded", context.DeadlineExceeded, false},
 		{"unrelated error", errors.New("boom"), false},
 		{"ErrSilent", ErrSilent, false},
 	}

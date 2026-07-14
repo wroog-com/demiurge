@@ -1,10 +1,14 @@
 package demi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"github.com/wroog-com/demiurge/internal/cmd"
@@ -21,15 +25,37 @@ const (
 )
 
 func Main() ExitCode {
+	ctx, stop := signalContext(context.Background())
+	defer stop()
+
 	f := &cmdutil.Factory{
 		IOStreams: iostreams.System(),
 	}
-	return run(f)
+	return run(ctx, f, os.Args[1:])
 }
 
-func run(f *cmdutil.Factory) ExitCode {
-	// ExecuteC returns the command that ran, so printError can show its usage.
-	executed, err := cmd.NewRootCmd(f).ExecuteC()
+// The first SIGINT/SIGTERM cancels the context; restoring the default
+// disposition then lets a second signal kill a command that ignores it.
+func signalContext(parent context.Context) (context.Context, context.CancelFunc) {
+	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-ctx.Done()
+		stop()
+	}()
+	return ctx, stop
+}
+
+func run(ctx context.Context, f *cmdutil.Factory, args []string) ExitCode {
+	// A nil slice would make the framework fall back to ambient os.Args.
+	if args == nil {
+		args = []string{}
+	}
+
+	root := cmd.NewRootCmd(f)
+	root.SetArgs(args)
+
+	// ExecuteContextC returns the command that ran, so printError can show its usage.
+	executed, err := root.ExecuteContextC(ctx)
 	return mapError(f, executed, err)
 }
 
