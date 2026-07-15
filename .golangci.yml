@@ -3,7 +3,10 @@ version: "2"
 linters:
   default: none
   enable:
+    - depguard
     - errcheck
+    - errorlint
+    - forbidigo
     - govet
     - ineffassign
     - nilerr
@@ -12,11 +15,68 @@ linters:
     - staticcheck
     - unused
   settings:
+    depguard:
+      rules:
+        no-logging-packages:
+          deny:
+            - pkg: log
+              desc: demi has no logger; debug output goes through iostreams.Debugf (AGENTS.md, Debug output)
+            - pkg: log/slog
+              desc: demi has no logger; debug output goes through iostreams.Debugf (AGENTS.md, Debug output)
+            - pkg: log/syslog
+              desc: demi has no logger; debug output goes through iostreams.Debugf (AGENTS.md, Debug output)
     errcheck:
       exclude-functions:
         - fmt.Fprint
         - fmt.Fprintln
         - fmt.Fprintf
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^os\.(Getenv|LookupEnv|Environ|ExpandEnv)$
+          msg: read the environment only in internal/iostreams or internal/config, behind an accessor
+        - pattern: ^(syscall|unix)\.(Getenv|Environ|Setenv|Unsetenv|Clearenv)$
+          msg: read the environment only in internal/iostreams or internal/config, behind an accessor
+        - pattern: ^os\.(Stdout|Stderr|Stdin)$
+          msg: use the Factory's IOStreams, never the process streams directly
+        - pattern: ^os\.NewFile$
+          msg: use the Factory's IOStreams, never the process streams directly
+        - pattern: ^iostreams\.System$
+          msg: only the entrypoint constructs system streams; take them from the Factory
+        - pattern: ^os\.Exit$
+          msg: only cmd/demi may exit; return an error and let the entrypoint decide
+        - pattern: ^fmt\.Print(f|ln)?$
+          msg: write to IOStreams, not the process streams
+        - pattern: ^print(ln)?$
+          msg: write to IOStreams, not the process streams
+  exclusions:
+    rules:
+      # Tests re-exec subprocesses and drive the real binary; the production
+      # boundaries above do not apply to them.
+      - path: _test\.go
+        linters:
+          - forbidigo
+      # internal/iostreams is the boundary layer: the sanctioned home of the
+      # environment reads and the process streams it abstracts.
+      - path: internal/iostreams/
+        linters:
+          - forbidigo
+      # Path-selector env vars resolve here until the value-resolution design
+      # re-plumbs them.
+      - path: internal/config/
+        linters:
+          - forbidigo
+        text: read the environment only
+      # The entrypoint wires the system streams into the Factory.
+      - path: internal/demi/
+        linters:
+          - forbidigo
+        text: only the entrypoint constructs system streams
+      # The process entrypoint owns the exit.
+      - path: cmd/demi/
+        linters:
+          - forbidigo
+        text: only cmd/demi may exit
 
 formatters:
   enable:

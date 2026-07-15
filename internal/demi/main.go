@@ -52,6 +52,7 @@ func run(ctx context.Context, f *cmdutil.Factory, args []string) ExitCode {
 	}
 
 	root := cmd.NewRootCmd(f)
+	f.IOStreams.Debugf("demi %s args %q", root.Version, args)
 	root.SetArgs(args)
 
 	// ExecuteContextC returns the command that ran, so printError can show its usage.

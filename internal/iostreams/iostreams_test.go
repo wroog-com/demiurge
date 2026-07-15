@@ -108,7 +108,7 @@ func TestIsDebug_unset(t *testing.T) {
 }
 
 func TestIsDebug_falsy(t *testing.T) {
-	for _, v := range []string{"false", "0", "no"} {
+	for _, v := range []string{"false", "0", "no", "False", "NO", "FALSE"} {
 		t.Setenv("DEMI_DEBUG", v)
 		ios, _, _, _ := Test()
 		if ios.IsDebug() {

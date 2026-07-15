@@ -51,6 +51,7 @@ func TestScripts(t *testing.T) {
 }
 
 func TestRun_success(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
 	ios, _, outBuf, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
@@ -66,6 +67,7 @@ func TestRun_success(t *testing.T) {
 }
 
 func TestRun_emptyArgsShowsHelp(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
 	ios, _, outBuf, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
@@ -81,6 +83,7 @@ func TestRun_emptyArgsShowsHelp(t *testing.T) {
 }
 
 func TestRun_nilArgsDoesNotReadOSArgs(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
 	ios, _, _, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
@@ -97,6 +100,7 @@ func TestRun_nilArgsDoesNotReadOSArgs(t *testing.T) {
 }
 
 func TestRun_unknownCommand(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
 	ios, _, _, errBuf := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
@@ -115,6 +119,7 @@ func TestRun_unknownCommand(t *testing.T) {
 // Cancellation is cooperative: a command that never reads its context
 // completes normally.
 func TestRun_canceledContextStillRunsVersion(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "")
 	ios, _, outBuf, _ := iostreams.Test()
 	f := &cmdutil.Factory{IOStreams: ios}
 
@@ -126,6 +131,22 @@ func TestRun_canceledContextStillRunsVersion(t *testing.T) {
 	}
 	if got, want := outBuf.String(), "demi version dev\n"; got != want {
 		t.Errorf("Out = %q, want %q", got, want)
+	}
+}
+
+func TestRun_debugStartupLine(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "1")
+	ios, _, outBuf, errBuf := iostreams.Test()
+	f := &cmdutil.Factory{IOStreams: ios}
+
+	if code := run(context.Background(), f, []string{"version"}); code != ExitOK {
+		t.Errorf("run() = %d, want ExitOK", code)
+	}
+	if got, want := errBuf.String(), "DEBUG: demi dev args [\"version\"]\n"; got != want {
+		t.Errorf("Err = %q, want %q", got, want)
+	}
+	if got, want := outBuf.String(), "demi version dev\n"; got != want {
+		t.Errorf("Out = %q, want debug output to leave stdout untouched (%q)", got, want)
 	}
 }
 
