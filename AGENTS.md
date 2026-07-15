@@ -31,8 +31,6 @@ Use sub-issues to break down anything non-trivial. A parent issue describes the 
 
 Milestones map to versions (e.g. `v0.2.0`). Check the active milestone before picking up work — it tells you what the current focus is. Issues not assigned to a milestone are backlog.
 
-Note: `gh milestone list` is not a valid gh command. Use `gh api repos/{owner}/{repo}/milestones` instead.
-
 ## Commits and versioning
 
 Use conventional commits — release-please reads them to determine the next version:
