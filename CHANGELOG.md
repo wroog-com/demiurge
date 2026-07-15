@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/wroog-com/demiurge/compare/v0.6.0...v0.7.0) (2026-07-15)
+
+
+### Features
+
+* add root command Long description and update Short ([#83](https://github.com/wroog-com/demiurge/issues/83)) ([f3850da](https://github.com/wroog-com/demiurge/commit/f3850dad970ffc869bcaa47b637bca158c6cfcc9))
+* wire DEMI_DEBUG diagnostics and enforce output boundaries ([#86](https://github.com/wroog-com/demiurge/issues/86)) ([cb0afa9](https://github.com/wroog-com/demiurge/commit/cb0afa9bf03c513c4dcf70ca02965ecde6eae6ca))
+
 ## [0.6.0](https://github.com/wroog-com/demiurge/compare/v0.5.0...v0.6.0) (2026-07-15)
 
 
