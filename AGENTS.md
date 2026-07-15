@@ -91,6 +91,35 @@ evolves:
 Keep the environment surface small — a new variable must fall into one of the two
 categories above.
 
+## Debug output
+
+Debug output is a single env-gated diagnostic stream on stderr. `DEMI_DEBUG` set to any
+non-empty value other than `0`, `false`, or `no` (case-insensitively) turns it on;
+unset or empty leaves it off.
+
+- **Every debug line goes through `f.IOStreams.Debugf`** — it gates on the variable and
+  prefixes `DEBUG: `. Never hand-roll the gate, the prefix, or the stream: no direct
+  `os.Stderr` writes, no `fmt.Print*` or bare `print`/`println`, no logging packages
+  (`log`, `log/slog`, or any third-party logger). The linter enforces the mechanical
+  subset — process streams, print builtins, ambient environment reads, and the stdlib
+  logging packages fail `make lint`; hand-rolling the gate or prefix against
+  `IOStreams.Err` passes lint and is still forbidden.
+- **`DEMI_DEBUG` is read in exactly one place** — `IsDebug()` in `internal/iostreams`.
+  Call sites consume the accessors and never read the environment.
+- **Debug lines are additive diagnostics, not presentation.** They may appear on success
+  and on failure, but they never replace, decorate, or reorder error output — errors
+  still surface exactly once, through `printError` (see Error handling).
+- **Call sites live at genuine decision points** — a resolved path, a selected provider,
+  a branch taken. Add them alongside the code they describe, not speculatively. When
+  debug is on, the stream's first line is the entrypoint's version-and-args line.
+- **The line format is not a contract.** Pre-1.0 it may change without deprecation;
+  nothing may parse it.
+
+That is the entire mechanism: one method, one level, one stream, one gate. No verbosity
+flags, no levels, no structured logging — extend it only when a concrete subsystem needs
+more than an on/off stream, and design that extension against the consumers that exist
+then.
+
 ## Error handling
 
 Errors flow up; the entrypoint (`cmd/demi` and `internal/demi`) owns presentation and
@@ -104,7 +133,8 @@ them and never calls `os.Exit`.
   `errors.New` that loses the reason.
 - **Wrap with `%w` by default.** Use `%v` only to deliberately sever the chain — when
   the cause is an implementation detail no caller may ever match on. Severing is the
-  exception; when unsure, wrap.
+  exception; when unsure, wrap. A deliberate sever carries `//nolint:errorlint` with a
+  brief reason, so every sever is visible and greppable.
 - **Messages are lowercase, with no trailing punctuation and no `error:` prefix**; they
   state what could not be done. Control sentinels whose text never prints (`ErrSilent`,
   `ErrCancel`) are named after their identifier instead — leave them as they are.
@@ -174,6 +204,6 @@ make check  # runs both; mirrors the required CI checks
 
 **Fakes:** use `iostreams.Test()` to get pre-wired in/out/err streams for unit tests — do not reach for real file descriptors or `os.Stdout`.
 
-**Environment pinning:** any test that exercises code reading the ambient environment must pin every variable that code reads with `t.Setenv`. Tests that supply values via an injected lookup (e.g. the `getenv` field on IOStreams) do not need `t.Setenv` — use injection instead.
+**Environment pinning:** any test that exercises code reading the ambient environment must pin every variable that code reads with `t.Setenv`. Tests that supply values through an injected lookup do not need `t.Setenv` for those values — prefer injection where a seam exists.
 
-**End-to-end (testscript):** the CLI harness lives in `internal/demi/main_test.go`; scripts go under `internal/demi/testdata/scripts/`. Each script is a self-contained `testscript` scenario. Add a new `.txt` file there for any behaviour that is easier to verify at the binary level than at the unit level.
+**End-to-end (testscript):** the CLI harness lives in `internal/demi/main_test.go`; scripts go under `internal/demi/testdata/scripts/`. Each script is a self-contained `testscript` scenario. Add a new `.txtar` file there for any behaviour that is easier to verify at the binary level than at the unit level.

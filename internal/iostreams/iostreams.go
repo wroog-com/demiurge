@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"golang.org/x/term"
 )
@@ -106,7 +107,7 @@ func (s *IOStreams) ForceColorEnabled()  { v := true; s.colorOverride = &v }
 func (s *IOStreams) ForceColorDisabled() { v := false; s.colorOverride = &v }
 
 func (s *IOStreams) IsDebug() bool {
-	switch os.Getenv("DEMI_DEBUG") {
+	switch strings.ToLower(os.Getenv("DEMI_DEBUG")) {
 	case "", "false", "0", "no":
 		return false
 	default:

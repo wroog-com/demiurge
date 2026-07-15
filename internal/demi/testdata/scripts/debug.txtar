@@ -1,0 +1,33 @@
+# Debug is off by default: DEMI_DEBUG is absent from the environment.
+exec demi version
+! stderr .
+
+# DEMI_DEBUG prints diagnostics on stderr; the first line reports the running
+# version and arguments. Stdout stays untouched. Matches stay tolerant: the
+# line format is not a contract.
+env DEMI_DEBUG=1
+exec demi version
+stdout 'demi version'
+! stdout 'DEBUG'
+stderr 'DEBUG: demi .+ args \["version"\]'
+
+# Debug lines are additive: a failing command still reports its error and
+# usage on stderr, debug line first.
+! exec demi nonsense
+! stdout .
+stderr 'DEBUG: demi [^\n]+\nunknown command "nonsense" for "demi"'
+stderr 'Usage:'
+
+# Falsy values keep debug off, case-insensitively.
+env DEMI_DEBUG=0
+exec demi version
+! stderr .
+
+env DEMI_DEBUG=False
+exec demi version
+! stderr .
+
+# Empty value behaves like unset: debug stays off.
+env DEMI_DEBUG=
+exec demi version
+! stderr .
