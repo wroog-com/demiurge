@@ -9,7 +9,8 @@ import (
 func NewRootCmd(f *cmdutil.Factory) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "demi",
-		Short:         "Terminal-native project awareness for developers",
+		Short:         "Terminal-native project lifecycle companion",
+		Long:          `demi is a terminal-native project lifecycle companion. It surfaces project state and context so you always know where things stand, handles filesystem operations so you never have to remember where things live, and lets you spin up new project versions with no friction.`,
 		Version:       versionString(build.Version, build.Date),
 		SilenceErrors: true,
 		SilenceUsage:  true,
