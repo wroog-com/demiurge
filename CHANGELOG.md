@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/wroog-com/demiurge/compare/v0.5.0...v0.6.0) (2026-07-15)
+
+
+### Features
+
+* add whole-CLI end-to-end test harness ([#80](https://github.com/wroog-com/demiurge/issues/80)) ([5117713](https://github.com/wroog-com/demiurge/commit/5117713fb3e3190d045e82d7584861b3053222bc))
+
 ## [0.5.0](https://github.com/wroog-com/demiurge/compare/v0.4.0...v0.5.0) (2026-07-14)
 
 
