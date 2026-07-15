@@ -1,0 +1,15 @@
+# No args prints help to stdout and exits 0. Matches stay tolerant: help text
+# changes as commands land.
+exec demi
+stdout 'Usage:'
+stdout 'demi \[command\]'
+stdout 'Available Commands:'
+stdout 'version'
+stdout 'Use "demi \[command\] --help"'
+! stderr .
+
+# --help prints the same help, also on stdout.
+exec demi --help
+stdout 'Usage:'
+stdout 'Available Commands:'
+! stderr .

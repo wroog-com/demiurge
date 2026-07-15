@@ -1,0 +1,5 @@
+# Unknown command: exit 1, error and usage on stderr, nothing on stdout.
+! exec demi nonsense
+! stdout .
+stderr 'unknown command "nonsense" for "demi"'
+stderr 'Usage:'
