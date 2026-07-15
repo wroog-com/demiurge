@@ -33,6 +33,8 @@ brews:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: "https://github.com/wroog-com/demiurge"
-    description: "Project maintenance tool for developers"
+    description: "Terminal-native project lifecycle companion for developers who maintain many projects at once"
     license: "MIT"
     install: bin.install "demi"
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/demi --version")

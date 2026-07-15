@@ -10,8 +10,8 @@ Run this to get current state:
 
 ```sh
 gh issue list --state open
-gh issue list --milestone <current-milestone> --state open
-gh milestone list
+gh api repos/{owner}/{repo}/milestones
+gh pr list
 ```
 
 **Every piece of work must be linked to at least one open issue.** If there is no issue that covers what you are about to do, stop and ask the user whether to create one before proceeding. Do not open issues yourself without asking first.
@@ -21,7 +21,7 @@ gh milestone list
 - All work (features, fixes, chores that change behaviour) links to an issue
 - Reference issues in commit messages: `feat: add git status view, closes #7`
 - Multiple related commits can reference the same issue without closing it: `ref #7`
-- Issues close automatically when a release ships if `closes #N` appears in a commit that lands on `main`
+- Issues close automatically when the commit lands on `main` if `closes #N` appears in it
 
 ## Sub-issues
 
@@ -30,6 +30,8 @@ Use sub-issues to break down anything non-trivial. A parent issue describes the 
 ## Milestones
 
 Milestones map to versions (e.g. `v0.2.0`). Check the active milestone before picking up work — it tells you what the current focus is. Issues not assigned to a milestone are backlog.
+
+Note: `gh milestone list` is not a valid gh command. Use `gh api repos/{owner}/{repo}/milestones` instead.
 
 ## Commits and versioning
 
@@ -68,7 +70,7 @@ The integration branch is disposable — never open a PR from it and never promo
 
 ## Release pipeline
 
-`conventional commit → main` → release-please maintains the version PR → merge the version PR → tag pushed → GoReleaser builds macOS binaries → Homebrew cask updated automatically
+`conventional commit → main` → release-please maintains the version PR → merge the version PR → tag pushed → GoReleaser builds macOS binaries → Homebrew formula updated automatically
 
 ## Configuration and environment variables
 
@@ -156,8 +158,24 @@ is what the rules above buy.
 ## Quick context commands
 
 ```sh
-gh issue list --state open          # what is open
-gh milestone list                   # current version goals
-gh pr list                          # open PRs including the release-please PR
-git log --oneline -10               # recent commits
+gh issue list --state open                          # what is open
+gh api repos/{owner}/{repo}/milestones              # current version goals
+gh pr list                                          # open PRs including the release-please PR
+git log --oneline -10                               # recent commits
 ```
+
+## Testing
+
+Run the full suite before opening a PR:
+
+```sh
+make test   # go test -race ./...
+make lint   # golangci-lint run (requires golangci-lint v2 locally: brew upgrade golangci-lint)
+make check  # runs both; mirrors the required CI checks
+```
+
+**Fakes:** use `iostreams.Test()` to get pre-wired in/out/err streams for unit tests — do not reach for real file descriptors or `os.Stdout`.
+
+**Environment pinning:** any test that exercises code reading the ambient environment must pin every variable that code reads with `t.Setenv`. Tests that supply values via an injected lookup (e.g. the `getenv` field on IOStreams) do not need `t.Setenv` — use injection instead.
+
+**End-to-end (testscript):** the CLI harness lives in `internal/demi/main_test.go`; scripts go under `internal/demi/testdata/scripts/`. Each script is a self-contained `testscript` scenario. Add a new `.txt` file there for any behaviour that is easier to verify at the binary level than at the unit level.
