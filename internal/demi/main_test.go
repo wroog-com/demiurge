@@ -12,14 +12,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rogpeppe/go-internal/testscript"
 	"github.com/spf13/cobra"
 	"github.com/wroog-com/demiurge/internal/cmd"
 	"github.com/wroog-com/demiurge/internal/cmdutil"
 	"github.com/wroog-com/demiurge/internal/iostreams"
 )
 
-// TestMain doubles as the helper process for the second-signal test: re-exec'd
-// with DEMI_TEST_SIGNAL_HANG=1 it registers the real signalContext and hangs.
+// TestMain hosts two subprocess entry points. The DEMI_TEST_SIGNAL_HANG branch
+// is the hung-command helper for TestSignalContext_secondSignalKills and must
+// stay first: testscript.Main never returns (it calls os.Exit), so if it ran
+// first the re-exec'd helper would run the whole suite instead of hanging.
 func TestMain(m *testing.M) {
 	if os.Getenv("DEMI_TEST_SIGNAL_HANG") == "1" {
 		ctx, stop := signalContext(context.Background())
@@ -32,7 +35,19 @@ func TestMain(m *testing.M) {
 		time.Sleep(10 * time.Second) // deliberately ignores ctx
 		os.Exit(0)
 	}
-	os.Exit(m.Run())
+	// os.Exit with the real code so scripts observe the 0/1/2 exit contract.
+	testscript.Main(m, map[string]func(){
+		"demi": func() { os.Exit(int(Main())) },
+	})
+}
+
+// TestScripts drives the real binary through every script under testdata/scripts.
+func TestScripts(t *testing.T) {
+	testscript.Run(t, testscript.Params{
+		Dir:                 "testdata/scripts",
+		RequireExplicitExec: true,
+		RequireUniqueNames:  true,
+	})
 }
 
 func TestRun_success(t *testing.T) {

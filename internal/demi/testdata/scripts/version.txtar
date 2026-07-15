@@ -1,0 +1,8 @@
+# version subcommand and --version flag both print the version to stdout, exit 0.
+exec demi version
+stdout 'demi version'
+! stderr .
+
+exec demi --version
+stdout 'demi version'
+! stderr .
