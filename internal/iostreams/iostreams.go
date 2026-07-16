@@ -23,6 +23,8 @@ type IOStreams struct {
 	stdoutTTYOverride *bool
 	stderrTTYOverride *bool
 	colorOverride     *bool
+
+	getenv func(string) string
 }
 
 func System() *IOStreams {
@@ -33,6 +35,7 @@ func System() *IOStreams {
 		inFile:  os.Stdin,
 		outFile: os.Stdout,
 		errFile: os.Stderr,
+		getenv:  os.Getenv,
 	}
 }
 
@@ -40,11 +43,22 @@ func Test() (*IOStreams, *bytes.Buffer, *bytes.Buffer, *bytes.Buffer) {
 	in := &bytes.Buffer{}
 	out := &bytes.Buffer{}
 	errBuf := &bytes.Buffer{}
-	ios := &IOStreams{In: in, Out: out, Err: errBuf}
+	ios := &IOStreams{In: in, Out: out, Err: errBuf, getenv: func(string) string { return "" }}
 	ios.SetStdinTTY(false)
 	ios.SetStdoutTTY(false)
 	ios.SetStderrTTY(false)
 	return ios, in, out, errBuf
+}
+
+func (s *IOStreams) SetEnv(env map[string]string) {
+	s.getenv = func(key string) string { return env[key] }
+}
+
+func (s *IOStreams) env(key string) string {
+	if s.getenv == nil {
+		return os.Getenv(key)
+	}
+	return s.getenv(key)
 }
 
 func (s *IOStreams) IsStdinTTY() bool {
@@ -77,14 +91,27 @@ func (s *IOStreams) IsStderrTTY() bool {
 	return term.IsTerminal(int(s.errFile.Fd()))
 }
 
+// CLICOLOR_FORCE beats NO_COLOR, CLICOLOR=0, and TERM=dumb.
 func (s *IOStreams) ColorEnabled() bool {
 	if s.colorOverride != nil {
 		return *s.colorOverride
 	}
-	if os.Getenv("NO_COLOR") != "" {
+	if s.colorForced() {
+		return true
+	}
+	if s.colorDisabled() {
 		return false
 	}
 	return s.IsStdoutTTY()
+}
+
+func (s *IOStreams) colorForced() bool {
+	v := s.env("CLICOLOR_FORCE")
+	return v != "" && v != "0"
+}
+
+func (s *IOStreams) colorDisabled() bool {
+	return s.env("NO_COLOR") != "" || s.env("CLICOLOR") == "0" || s.env("TERM") == "dumb"
 }
 
 func (s *IOStreams) SetStdinTTY(v bool)  { s.stdinTTYOverride = &v }
@@ -107,7 +134,7 @@ func (s *IOStreams) ForceColorEnabled()  { v := true; s.colorOverride = &v }
 func (s *IOStreams) ForceColorDisabled() { v := false; s.colorOverride = &v }
 
 func (s *IOStreams) IsDebug() bool {
-	switch strings.ToLower(os.Getenv("DEMI_DEBUG")) {
+	switch strings.ToLower(s.env("DEMI_DEBUG")) {
 	case "", "false", "0", "no":
 		return false
 	default:

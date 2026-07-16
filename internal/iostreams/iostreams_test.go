@@ -59,29 +59,35 @@ func TestForceTerminal(t *testing.T) {
 	}
 }
 
-func TestColorEnabled_noTTY(t *testing.T) {
-	ios, _, _, _ := Test()
-	t.Setenv("NO_COLOR", "")
-	if ios.ColorEnabled() {
-		t.Error("expected ColorEnabled to be false when not a TTY")
+func TestColorEnabled_envMatrix(t *testing.T) {
+	tests := []struct {
+		name string
+		tty  bool
+		env  map[string]string
+		want bool
+	}{
+		{"tty, no signals", true, nil, true},
+		{"no tty, no signals", false, nil, false},
+		{"NO_COLOR beats tty", true, map[string]string{"NO_COLOR": "1"}, false},
+		{"CLICOLOR=0 disables on tty", true, map[string]string{"CLICOLOR": "0"}, false},
+		{"CLICOLOR=1 does not force through pipe", false, map[string]string{"CLICOLOR": "1"}, false},
+		{"TERM=dumb disables on tty", true, map[string]string{"TERM": "dumb"}, false},
+		{"CLICOLOR_FORCE forces through pipe", false, map[string]string{"CLICOLOR_FORCE": "1"}, true},
+		{"CLICOLOR_FORCE=0 does not force", false, map[string]string{"CLICOLOR_FORCE": "0"}, false},
+		{"CLICOLOR_FORCE beats NO_COLOR", false, map[string]string{"CLICOLOR_FORCE": "1", "NO_COLOR": "1"}, true},
+		{"CLICOLOR_FORCE beats TERM=dumb", false, map[string]string{"CLICOLOR_FORCE": "1", "TERM": "dumb"}, true},
 	}
-}
-
-func TestColorEnabled_withTTY(t *testing.T) {
-	ios, _, _, _ := Test()
-	ios.ForceTerminal()
-	t.Setenv("NO_COLOR", "")
-	if !ios.ColorEnabled() {
-		t.Error("expected ColorEnabled to be true when TTY and NO_COLOR unset")
-	}
-}
-
-func TestColorEnabled_noColor(t *testing.T) {
-	ios, _, _, _ := Test()
-	ios.ForceTerminal()
-	t.Setenv("NO_COLOR", "1")
-	if ios.ColorEnabled() {
-		t.Error("expected ColorEnabled to be false when NO_COLOR is set")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ios, _, _, _ := Test()
+			if tt.tty {
+				ios.ForceTerminal()
+			}
+			ios.SetEnv(tt.env)
+			if got := ios.ColorEnabled(); got != tt.want {
+				t.Errorf("ColorEnabled() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -99,8 +105,14 @@ func TestForceColorOverrides(t *testing.T) {
 	}
 }
 
+func TestSystem_readsProcessEnv(t *testing.T) {
+	t.Setenv("DEMI_DEBUG", "1")
+	if !System().IsDebug() {
+		t.Error("expected System() to read DEMI_DEBUG from the process environment")
+	}
+}
+
 func TestIsDebug_unset(t *testing.T) {
-	t.Setenv("DEMI_DEBUG", "")
 	ios, _, _, _ := Test()
 	if ios.IsDebug() {
 		t.Error("expected IsDebug to be false when DEMI_DEBUG is unset")
@@ -109,8 +121,8 @@ func TestIsDebug_unset(t *testing.T) {
 
 func TestIsDebug_falsy(t *testing.T) {
 	for _, v := range []string{"false", "0", "no", "False", "NO", "FALSE"} {
-		t.Setenv("DEMI_DEBUG", v)
 		ios, _, _, _ := Test()
+		ios.SetEnv(map[string]string{"DEMI_DEBUG": v})
 		if ios.IsDebug() {
 			t.Errorf("expected IsDebug to be false when DEMI_DEBUG=%q", v)
 		}
@@ -118,16 +130,16 @@ func TestIsDebug_falsy(t *testing.T) {
 }
 
 func TestIsDebug_set(t *testing.T) {
-	t.Setenv("DEMI_DEBUG", "1")
 	ios, _, _, _ := Test()
+	ios.SetEnv(map[string]string{"DEMI_DEBUG": "1"})
 	if !ios.IsDebug() {
 		t.Error("expected IsDebug to be true when DEMI_DEBUG=1")
 	}
 }
 
 func TestDebugf_writesWhenEnabled(t *testing.T) {
-	t.Setenv("DEMI_DEBUG", "1")
 	ios, _, _, errBuf := Test()
+	ios.SetEnv(map[string]string{"DEMI_DEBUG": "1"})
 	ios.Debugf("hello %s", "world")
 	if errBuf.String() != "DEBUG: hello world\n" {
 		t.Errorf("unexpected debug output: %q", errBuf.String())
@@ -135,7 +147,6 @@ func TestDebugf_writesWhenEnabled(t *testing.T) {
 }
 
 func TestDebugf_silentWhenDisabled(t *testing.T) {
-	t.Setenv("DEMI_DEBUG", "")
 	ios, _, _, errBuf := Test()
 	ios.Debugf("should not appear")
 	if errBuf.String() != "" {
