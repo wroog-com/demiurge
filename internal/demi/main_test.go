@@ -135,8 +135,8 @@ func TestRun_canceledContextStillRunsVersion(t *testing.T) {
 }
 
 func TestRun_debugStartupLine(t *testing.T) {
-	t.Setenv("DEMI_DEBUG", "1")
 	ios, _, outBuf, errBuf := iostreams.Test()
+	ios.SetEnv(map[string]string{"DEMI_DEBUG": "1"})
 	f := &cmdutil.Factory{IOStreams: ios}
 
 	if code := run(context.Background(), f, []string{"version"}); code != ExitOK {
