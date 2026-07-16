@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/wroog-com/demiurge/compare/v0.7.0...v0.8.0) (2026-07-16)
+
+
+### Features
+
+* honor CLICOLOR, CLICOLOR_FORCE, and TERM=dumb in color detection ([#89](https://github.com/wroog-com/demiurge/issues/89)) ([59cb23c](https://github.com/wroog-com/demiurge/commit/59cb23cd607651e04235fb36ecd99384b2a54f59))
+
 ## [0.7.0](https://github.com/wroog-com/demiurge/compare/v0.6.0...v0.7.0) (2026-07-15)
 
 
