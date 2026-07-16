@@ -93,6 +93,29 @@ projects) are a direction the tool is built toward, not all present yet.
 commands, flags, environment variables, and stored state — may change without a
 deprecation period until 1.0.
 
+## Reference
+
+### Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Error — message written to stderr |
+| 2 | Cancelled — Ctrl-C or SIGTERM; nothing printed |
+
+Commands that cooperate with cancellation exit 2 on the first Ctrl-C or SIGTERM,
+rather than dying by signal (130 or 143). A second signal after the first has
+been handled kills the process; the shell sees 130 (SIGINT) or 143 (SIGTERM). A
+gracefully-cancelled command that exits 2 does not abort an enclosing bash `for`
+loop the way signal-death would — the escape applies only to a process still
+running.
+
+### Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `DEMI_DEBUG` | Set to any non-empty value (not `0`, `false`, or `no`) to write diagnostic output to stderr |
+
 ## For contributors
 
 - [`docs/vision.md`](docs/vision.md) — the product model and the reasoning behind
