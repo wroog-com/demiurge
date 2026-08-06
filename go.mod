@@ -3,7 +3,7 @@ module github.com/wroog-com/demiurge
 go 1.26.5
 
 require (
-	github.com/rogpeppe/go-internal v1.15.0
+	github.com/rogpeppe/go-internal v1.16.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/term v0.45.0
 )
