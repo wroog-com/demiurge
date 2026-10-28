@@ -70,6 +70,35 @@ The integration branch is disposable — never open a PR from it and never promo
 
 `conventional commit → main` → release-please maintains the version PR → merge the version PR → tag pushed → GoReleaser builds macOS binaries → Homebrew formula updated automatically
 
+## Package layout
+
+Packages are flat under `internal/`, one per responsibility, named with a short singular
+noun. No `util`, `common`, `helpers`, or `misc` packages, and no `internal/pkg` or
+`internal/app` nesting.
+
+- **`internal/cmd` is the command layer only**: cobra wiring, flags, run functions, and
+  user-facing messages. Logic that answers a question about the system or the domain —
+  path identity, volume type, state on disk — lives in its own package and returns
+  facts; the command turns facts into words.
+- **Platform-specific code lives in the package that owns the concern**, as
+  `GOOS`-suffixed files (`<name>_darwin.go`) with a `//go:build !darwin` counterpart,
+  and platform-neutral types in a plain file. The command packages never import
+  `syscall` or `golang.org/x/sys`; `make lint` enforces this.
+- **Don't stretch an existing package to host unrelated code.** A function belongs where
+  its responsibility is, not where its first caller happens to be; if no package fits,
+  add one. Size does not justify a package; a distinct responsibility does.
+
+| Package | Responsibility |
+| --- | --- |
+| `internal/demi` | process entrypoint: wiring, error presentation, exit codes |
+| `internal/cmd` | commands |
+| `internal/cmdutil` | Factory and error types shared by commands and the entrypoint |
+| `internal/iostreams` | terminal streams, color, debug output |
+| `internal/config` | demi's file locations |
+| `internal/build` | build metadata |
+
+Add a row when you add a package.
+
 ## Configuration and environment variables
 
 The configuration and setup model is designed in #54 and its child issues; consult it

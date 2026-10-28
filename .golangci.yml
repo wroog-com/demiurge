@@ -25,6 +25,15 @@ linters:
               desc: demi has no logger; debug output goes through iostreams.Debugf (AGENTS.md, Debug output)
             - pkg: log/syslog
               desc: demi has no logger; debug output goes through iostreams.Debugf (AGENTS.md, Debug output)
+        no-platform-apis-in-commands:
+          files:
+            - "**/internal/cmd/**"
+            - "**/internal/cmdutil/**"
+          deny:
+            - pkg: syscall
+              desc: OS-level code lives in its own package and returns facts to commands (AGENTS.md, Package layout)
+            - pkg: golang.org/x/sys
+              desc: OS-level code lives in its own package and returns facts to commands (AGENTS.md, Package layout)
     errcheck:
       exclude-functions:
         - fmt.Fprint
